@@ -6,7 +6,7 @@ on:
       re_ref:
         description: Reviewed UnhideNPCs-RE-Vox commit
         required: false
-        default: ba1c2dccfb4fa3c29d6152e8f54bf35e9c9b3752
+        default: 2be86c935b935f6804de0aeeb8fd4da0aa20ad08
 
 permissions:
   contents: write
