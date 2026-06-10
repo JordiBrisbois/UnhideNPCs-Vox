@@ -150,8 +150,8 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 )
 
 if (BUILDING_ON_GITHUB)
-    target_include_directories(${PROJECT_NAME} PRIVATE "${UnhideNPCs_RE_SOURCE_DIR}")
-    file(GLOB SRC_RE "${UnhideNPCs_RE_SOURCE_DIR}/*.cpp")
+    target_include_directories(${PROJECT_NAME} PRIVATE "${unhidenpcs_re_SOURCE_DIR}")
+    file(GLOB SRC_RE "${unhidenpcs_re_SOURCE_DIR}/*.cpp")
 else ()
     if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../UnhideNPCs-RE")
         target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../UnhideNPCs-RE")
