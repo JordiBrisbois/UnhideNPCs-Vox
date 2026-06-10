@@ -1,6 +1,8 @@
 # Build directories
 cmake-build-*/
 build/
+build-make/
+.reverse/
 out/
 bin/
 lib/

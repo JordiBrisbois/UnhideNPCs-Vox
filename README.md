@@ -1,4 +1,4 @@
-# UnhideNPCs
+# UnhideNPCs by Vox
 
 Ever been annoyed that enemies, bosses and NPCs disappear when many players are nearby?  
 UnhideNPCs keeps them visible.
@@ -27,12 +27,12 @@ There are four different ways to use UnhideNPCs; only follow one of them.
 1. It's available in-game in the Nexus Library
 
 ### 2) ArcDPS
-1. Download `UnhideNPCs.dll` from [Releases](https://github.com/server-imp/UnhideNPCs/releases).
+1. Download `UnhideNPCs.dll` from [Releases](https://github.com/JordiBrisbois/UnhideNPCs-Vox/releases).
 2. Place it in your game folder (e.g. `C:\Program Files\Guild Wars 2`).
 3. ArcDPS will load the plugin automatically on the next launch.
 
 ### 3) DLL Proxy
-1. Download `UnhideNPCs.dll` from [Releases](https://github.com/server-imp/UnhideNPCs/releases).
+1. Download `UnhideNPCs.dll` from [Releases](https://github.com/JordiBrisbois/UnhideNPCs-Vox/releases).
 2. Rename it to one of the following: `dxgi.dll`/`midimap.dll`/`d3d9.dll`.
     - Note: `midimap.dll` does not appear to work on Linux/Proton in my tests
 3. Place it in your game folder.

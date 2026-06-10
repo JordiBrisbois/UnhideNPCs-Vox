@@ -118,7 +118,7 @@ struct MumbleLink
     [[nodiscard]] float getFov() const
     {
         static float cachedFov = 1.222f;
-        static u64 lastUpdate {};
+        static uint64_t lastUpdate {};
 
         if (GetTickCount64() - lastUpdate < 1000)
         {

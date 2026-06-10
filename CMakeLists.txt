@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.31)
 set(PROJECT_NAME "UnhideNPCs")
+set(PROJECT_AUTHOR "Vox")
+set(PROJECT_URL "https://github.com/JordiBrisbois/UnhideNPCs-Vox")
 project(${PROJECT_NAME})
 set(CMAKE_CXX_STANDARD 17)
 
@@ -70,7 +72,7 @@ target_include_directories(minhook PUBLIC
 if (BUILDING_ON_GITHUB)
     FetchContent_Declare(
             UnhideNPCs_RE
-            GIT_REPOSITORY "https://github.com/server-imp/UnhideNPCs-RE.git"
+            GIT_REPOSITORY "https://github.com/JordiBrisbois/UnhideNPCs-RE-Vox.git"
             GIT_TAG "main"
             GIT_SHALLOW TRUE
     )
@@ -82,7 +84,6 @@ FetchContent_Declare(
         GIT_REPOSITORY https://github.com/ocornut/imgui.git
         GIT_TAG v1.80
         GIT_SHALLOW TRUE
-        PATCH_COMMAND git apply --ignore-whitespace "${CMAKE_SOURCE_DIR}/patches/imgui-xinput-lowercase.patch"
 )
 FetchContent_MakeAvailable(imgui)
 add_library(imgui STATIC
@@ -152,8 +153,13 @@ if (BUILDING_ON_GITHUB)
     target_include_directories(${PROJECT_NAME} PRIVATE "${UnhideNPCs_RE_SOURCE_DIR}")
     file(GLOB SRC_RE "${UnhideNPCs_RE_SOURCE_DIR}/*.cpp")
 else ()
-    target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../UnhideNPCs-RE")
-    file(GLOB SRC_RE "${CMAKE_CURRENT_SOURCE_DIR}/../UnhideNPCs-RE/*.cpp")
+    if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../UnhideNPCs-RE")
+        target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../UnhideNPCs-RE")
+        file(GLOB SRC_RE "${CMAKE_CURRENT_SOURCE_DIR}/../UnhideNPCs-RE/*.cpp")
+    else ()
+        target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/re")
+        file(GLOB SRC_RE "${CMAKE_CURRENT_SOURCE_DIR}/re/*.cpp")
+    endif ()
 endif ()
 target_sources(${PROJECT_NAME} PRIVATE ${SRC_RE})
 

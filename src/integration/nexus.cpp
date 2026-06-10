@@ -125,14 +125,14 @@ nexus::AddonDefinition* GetAddonDef()
     nexus::AddonDef.Version.Minor    = unpc::version::MONTH;
     nexus::AddonDef.Version.Build    = unpc::version::DAY;
     nexus::AddonDef.Version.Revision = unpc::version::BUILD;
-    nexus::AddonDef.Author           = "server-imp";
+    nexus::AddonDef.Author           = "Vox";
     nexus::AddonDef.Description      = "Stops the game from hiding NPCs/Monsters etc";
     nexus::AddonDef.Load             = nexus::onLoad;
     nexus::AddonDef.Unload           = nexus::onUnload;
     nexus::AddonDef.Flags            = nexus::EAddonFlags::EAddonFlags_IsVolatile;
 
     nexus::AddonDef.Provider   = nexus::EUpdateProvider_GitHub;
-    nexus::AddonDef.UpdateLink = "https://github.com/server-imp/UnhideNPCs";
+    nexus::AddonDef.UpdateLink = "https://github.com/JordiBrisbois/UnhideNPCs-Vox";
 
     return &nexus::AddonDef;
 }

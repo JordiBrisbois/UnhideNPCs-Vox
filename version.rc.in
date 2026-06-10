@@ -14,7 +14,8 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "ProductName", "UnhideNPCs"
-            VALUE "FileDescription", "https://github.com/server-imp/UnhideNPCs"
+            VALUE "CompanyName", "@PROJECT_AUTHOR@"
+            VALUE "FileDescription", "@PROJECT_URL@"
             VALUE "FileVersion", "@UNPC_VER_STRING@"
         END
     END

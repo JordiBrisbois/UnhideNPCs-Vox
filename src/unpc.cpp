@@ -272,13 +272,13 @@ bool initialize()
     re::gw2::getContextCollection = reinterpret_cast<re::gw2::GetContextCollectionFn>(pointer.raw());
     LOG_INFO("Pattern 4 OK");
 
-    if (!Scanner::findStringReference(re::pattern5, pointer))
+    if (!game.findPattern(re::pattern5, pointer))
     {
         LOG_ERR("Unable to find pattern 5");
         removeInitFile();
         return false;
     }
-    re::gw2::getAvContext = reinterpret_cast<re::gw2::GetAvContextFn>(pointer.add(12).resolve_relative_call().raw());
+    re::gw2::getAvContext = reinterpret_cast<re::gw2::GetAvContextFn>(pointer.add(8).resolve_relative_call().raw());
     LOG_INFO("Pattern 5 OK");
 
     if (!npcHook->enable())

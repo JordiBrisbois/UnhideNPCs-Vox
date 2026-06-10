@@ -812,7 +812,7 @@ footer:
     ImGui::SameLine();
     if (textLink("GitHub"))
     {
-        ShellExecuteA(nullptr, "open", "https://github.com/server-imp/UnhideNPCs/", nullptr, nullptr, SW_SHOWNORMAL);
+        ShellExecuteA(nullptr, "open", "https://github.com/JordiBrisbois/UnhideNPCs-Vox/", nullptr, nullptr, SW_SHOWNORMAL);
     }
     ImGui::SameLine();
 
@@ -1038,7 +1038,7 @@ uintptr_t ui::onWndProc(HWND hWnd, const UINT msg, const WPARAM wParam, const LP
     return msg;
 }
 
-u32 ui::onWndProcNexus(HWND hWnd, const UINT msg, const WPARAM wParam, const LPARAM lParam)
+uint32_t ui::onWndProcNexus(HWND hWnd, const UINT msg, const WPARAM wParam, const LPARAM lParam)
 {
     return onWndProc(hWnd, msg, wParam, lParam);
 }
