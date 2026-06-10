@@ -3,6 +3,11 @@
 Ever been annoyed that enemies, bosses and NPCs disappear when many players are nearby?  
 UnhideNPCs keeps them visible.
 
+Maintained by **Vox**, based on the original
+[UnhideNPCs](https://github.com/server-imp/UnhideNPCs) project by **server-imp**.
+Current releases and issue tracking live in this
+[Vox repository](https://github.com/JordiBrisbois/UnhideNPCs-Vox).
+
 Using this, you could even put `Character Model Limit` to `Lowest` and still see all enemies/bosses/NPCs!
 
 ## Notes

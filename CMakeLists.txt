@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.31)
 set(PROJECT_NAME "UnhideNPCs")
-set(PROJECT_AUTHOR "Vox")
+set(PROJECT_AUTHOR "Vox; original author: server-imp")
 set(PROJECT_URL "https://github.com/JordiBrisbois/UnhideNPCs-Vox")
 project(${PROJECT_NAME})
 set(CMAKE_CXX_STANDARD 17)

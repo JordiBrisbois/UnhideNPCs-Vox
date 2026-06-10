@@ -125,8 +125,8 @@ nexus::AddonDefinition* GetAddonDef()
     nexus::AddonDef.Version.Minor    = unpc::version::MONTH;
     nexus::AddonDef.Version.Build    = unpc::version::DAY;
     nexus::AddonDef.Version.Revision = unpc::version::BUILD;
-    nexus::AddonDef.Author           = "Vox";
-    nexus::AddonDef.Description      = "Stops the game from hiding NPCs/Monsters etc";
+    nexus::AddonDef.Author           = "Vox (original author: server-imp)";
+    nexus::AddonDef.Description      = "Stops the game from hiding NPCs/Monsters. Maintained by Vox, based on server-imp's original addon.";
     nexus::AddonDef.Load             = nexus::onLoad;
     nexus::AddonDef.Unload           = nexus::onUnload;
     nexus::AddonDef.Flags            = nexus::EAddonFlags::EAddonFlags_IsVolatile;
