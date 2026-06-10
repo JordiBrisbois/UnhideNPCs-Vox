@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.31)
 set(PROJECT_NAME "UnhideNPCs")
 set(PROJECT_AUTHOR "Vox; original author: server-imp")
 set(PROJECT_URL "https://github.com/JordiBrisbois/UnhideNPCs-Vox")
+set(UNPC_RE_REF "ba1c2dccfb4fa3c29d6152e8f54bf35e9c9b3752" CACHE STRING "Reviewed UnhideNPCs-RE-Vox revision")
 project(${PROJECT_NAME})
 set(CMAKE_CXX_STANDARD 17)
 
@@ -73,8 +74,7 @@ if (BUILDING_ON_GITHUB)
     FetchContent_Declare(
             UnhideNPCs_RE
             GIT_REPOSITORY "https://github.com/JordiBrisbois/UnhideNPCs-RE-Vox.git"
-            GIT_TAG "main"
-            GIT_SHALLOW TRUE
+            GIT_TAG "${UNPC_RE_REF}"
     )
     FetchContent_MakeAvailable(UnhideNPCs_RE)
 endif ()

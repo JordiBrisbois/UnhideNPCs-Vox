@@ -8,6 +8,9 @@ Maintained by **Vox**, based on the original
 Current releases and issue tracking live in this
 [Vox repository](https://github.com/JordiBrisbois/UnhideNPCs-Vox).
 
+Release builds are reproducible: each public revision pins a reviewed commit
+of the private reverse-engineering layer.
+
 Using this, you could even put `Character Model Limit` to `Lowest` and still see all enemies/bosses/NPCs!
 
 ## Notes

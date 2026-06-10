@@ -2,16 +2,25 @@ name: Build and Release
 
 on:
   workflow_dispatch:
+    inputs:
+      re_ref:
+        description: Reviewed UnhideNPCs-RE-Vox commit
+        required: false
+        default: ba1c2dccfb4fa3c29d6152e8f54bf35e9c9b3752
 
 permissions:
   contents: write
+
+concurrency:
+  group: build-and-release
+  cancel-in-progress: false
 
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Install MinGW toolchain
         run: |
@@ -32,6 +41,7 @@ jobs:
           -DCMAKE_C_COMPILER=x86_64-w64-mingw32-gcc
           -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-g++
           -DCMAKE_RC_COMPILER=x86_64-w64-mingw32-windres
+          -DUNPC_RE_REF=${{ inputs.re_ref }}
 
       - name: Build
         run: cmake --build build --config RelWithDebInfo
@@ -42,33 +52,13 @@ jobs:
           VERSION=$(cat build/version.txt)
           echo "VERSION=v${VERSION}" >> $GITHUB_OUTPUT
 
-      - name: Create GitHub Release
-        id: create_release
-        uses: actions/create-release@v1
-        with:
-          tag_name: ${{ steps.version.outputs.VERSION }}
-          release_name: ${{ steps.version.outputs.VERSION }}
-          draft: true
-          prerelease: false
+      - name: Create draft GitHub release
+        run: |
+          gh release create "${{ steps.version.outputs.VERSION }}" \
+            ./build/UnhideNPCs.dll \
+            ./build/UnhideNPCs.dll.debug \
+            --draft \
+            --generate-notes \
+            --title "${{ steps.version.outputs.VERSION }}"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload DLL to Release
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/UnhideNPCs.dll
-          asset_name: UnhideNPCs.dll
-          asset_content_type: application/octet-stream
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload Debug Symbols to Release
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/UnhideNPCs.dll.debug
-          asset_name: UnhideNPCs.dll.debug
-          asset_content_type: application/octet-stream
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
