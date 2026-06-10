@@ -2,8 +2,6 @@
 
 #include "hook.hpp"
 
-#include "handle.hpp"
-#include "module.hpp"
 #include "../logger.hpp"
 
 #include "MinHook.h"
@@ -12,31 +10,7 @@
 memory::Hook::Hook(std::string name, void* target, void* original, void* ownFunction) : _name(std::move(name)),
     _target(target), _original(original), _ownFunction(ownFunction)
 {
-    const auto  from = Handle(_target);
-    std::string fromStr {};
-    const auto  to = Handle(_ownFunction);
-    std::string toStr {};
-
-    Module module {};
-    if (Module::tryGetByAddr(from, module))
-    {
-        fromStr = fmt::format("{}+{:X}", module.name(), from.sub(module.start()).raw());
-    }
-    else
-    {
-        fromStr = fmt::format("{:08X}", from.raw());
-    }
-
-    if (memory::Module::tryGetByAddr(to, module))
-    {
-        toStr = fmt::format("{}+{:X}", module.name(), to.sub(module.start()).raw());
-    }
-    else
-    {
-        toStr = fmt::format("{:08X}", to.raw());
-    }
-
-    LOG_DBG("Created hook \"{}\" {} -> {}", _name, fromStr, toStr);
+    LOG_DBG("Created hook \"{}\"", _name);
 }
 
 const std::string& memory::Hook::name() const

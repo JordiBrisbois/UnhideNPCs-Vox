@@ -3,28 +3,27 @@
 #include "../logger.hpp"
 #include "fw/util.hpp"
 
+#include <array>
+#include <limits>
+
 bool memory::tryNearAlloc(const Handle& target, const size_t size, Handle& result)
 {
-    LOG_DBG("Attempting near allocation (0x{:08X}, 0x{:04X})", target.raw(), size);
+    LOG_DBG("Attempting near allocation");
     constexpr SIZE_T    granularity = 0x10000;
     constexpr uintptr_t maxOffset  = 0x7FFF0000;
     const uintptr_t     base        = target.raw();
 
     for (uintptr_t offset = 0; offset < maxOffset; offset += granularity)
     {
-        for (const int sign : { -1, 1 })
+        const std::array candidates {
+            offset <= base ? base - offset : 0,
+            offset <= std::numeric_limits<uintptr_t>::max() - base ? base + offset : 0,
+        };
+
+        for (const auto tryAddr : candidates)
         {
-            const uintptr_t tryAddr = base + sign * offset;
-
-            if (sign == -1 && tryAddr > base)
-            {
+            if (tryAddr == 0)
                 continue;
-            }
-            if (sign == 1 && tryAddr < base)
-            {
-                continue;
-            }
-
             if (void* p = VirtualAlloc(
                 reinterpret_cast<void*>(tryAddr),
                 size,
@@ -33,7 +32,7 @@ bool memory::tryNearAlloc(const Handle& target, const size_t size, Handle& resul
             ))
             {
                 result = Handle(p);
-                LOG_DBG("Successful allocation at {:08X}", result.raw());
+                LOG_DBG("Near allocation successful");
                 return true;
             }
         }
@@ -75,7 +74,7 @@ bool memory::locateAllPointers(
 
     const uintptr_t target_value = target.raw();
 
-    for (ptrdiff_t i = 0; i <= largestOffset - sizeof(uintptr_t); ++i)
+    for (size_t i = 0; i <= largestOffset - sizeof(uintptr_t); ++i)
     {
         uintptr_t value;
         std::memcpy(&value, buffer.data() + i, sizeof(value));

@@ -36,43 +36,15 @@ std::string Hotkey::toString() const
     return s;
 }
 
-bool HotkeyManager::isHotkeyPressed(Hotkey& hotkey) const
+HotkeyManager::HotkeyManager(std::filesystem::path filePath)
 {
-    if (!_wndClassActive)
-    {
-        return false;
-    }
-
-    if (hotkey.vkCode == 0)
-    {
-        return false;
-    }
-
-    const bool pressed = _keyStates.down[hotkey.vkCode] && _keyStates.down[VK_CONTROL] == hotkey.ctrl && _keyStates.down[VK_SHIFT] == hotkey.shift && _keyStates
-        .down[VK_MENU] == hotkey.alt;
-
-    if (pressed && !hotkey.active)
-    {
-        hotkey.active = true;
-        return true;
-    }
-
-    if (!pressed)
-    {
-        hotkey.active = false;
-    }
-
-    return false;
-}
-
-HotkeyManager::HotkeyManager(const std::string& requiredWndClassName, std::filesystem::path filePath)
-{
-    setRequiredWndClassName(requiredWndClassName);
     _filePath = std::move(filePath);
 }
 
 uintptr_t HotkeyManager::onWndProc(HWND hWnd, const UINT msg, const WPARAM wParam, LPARAM lParam)
 {
+    std::lock_guard lock(_mutex);
+
     if (msg != WM_KEYDOWN)
     {
         return msg;
@@ -192,13 +164,9 @@ uintptr_t HotkeyManager::onWndProc(HWND hWnd, const UINT msg, const WPARAM wPara
     return msg;
 }
 
-void HotkeyManager::setRequiredWndClassName(const std::string& className)
-{
-    _requiredWndClassName = className;
-}
-
 void HotkeyManager::registerHotkey(const std::string& id, const std::string& label)
 {
+    std::lock_guard lock(_mutex);
     if (getHotkey(id))
     {
         LOG_WARN("Hotkey \"{}\" already registered", id);
@@ -210,6 +178,7 @@ void HotkeyManager::registerHotkey(const std::string& id, const std::string& lab
 
 void HotkeyManager::unregisterHotkey(const std::string& id)
 {
+    std::lock_guard lock(_mutex);
     _hotkeys.erase(
         std::remove_if(
             _hotkeys.begin(),
@@ -225,6 +194,7 @@ void HotkeyManager::unregisterHotkey(const std::string& id)
 
 void HotkeyManager::triggerCallbacks(const std::string& id) const
 {
+    std::lock_guard lock(_mutex);
     for (const auto& callback : _callbacks)
     {
         callback(id);
@@ -233,11 +203,13 @@ void HotkeyManager::triggerCallbacks(const std::string& id) const
 
 void HotkeyManager::registerCallback(const std::function<void(const std::string&)>& callback)
 {
+    std::lock_guard lock(_mutex);
     _callbacks.push_back(callback);
 }
 
 void HotkeyManager::update()
 {
+    std::lock_guard lock(_mutex);
     if (_needSave)
     {
         save();
@@ -282,6 +254,7 @@ void HotkeyManager::renderHotkey(const std::string& id, Hotkey& hotkey)
 
 void HotkeyManager::renderHotkeys()
 {
+    std::lock_guard lock(_mutex);
     if (ImGui::BeginTable("hotkey_table", 2, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_ScrollY, ImVec2(0, 300)))
     {
         ImGui::TableSetupColumn("Text", ImGuiTableColumnFlags_WidthStretch);
@@ -298,6 +271,7 @@ void HotkeyManager::renderHotkeys()
 
 void HotkeyManager::stopCapturing(const bool clearHotkey)
 {
+    std::lock_guard lock(_mutex);
     if (!_hotkeyCapturing.empty())
     {
         if (clearHotkey)
@@ -316,11 +290,13 @@ void HotkeyManager::stopCapturing(const bool clearHotkey)
 
 bool HotkeyManager::isCapturing() const
 {
+    std::lock_guard lock(_mutex);
     return !_hotkeyCapturing.empty();
 }
 
 Hotkey* HotkeyManager::getHotkey(const std::string& id)
 {
+    std::lock_guard lock(_mutex);
     for (auto& [key, hotkey] : _hotkeys)
     {
         if (key == id)
@@ -334,6 +310,7 @@ Hotkey* HotkeyManager::getHotkey(const std::string& id)
 
 void HotkeyManager::save()
 {
+    std::lock_guard lock(_mutex);
     const std::filesystem::path dir = _filePath.parent_path();
     if (!exists(dir))
     {
@@ -356,6 +333,7 @@ void HotkeyManager::save()
 
 void HotkeyManager::load()
 {
+    std::lock_guard lock(_mutex);
     if (!exists(_filePath))
     {
         return;

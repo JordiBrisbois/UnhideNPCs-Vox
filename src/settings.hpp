@@ -6,7 +6,7 @@
 
 #define S(type, name, value, comment) fw::Setting<type>& name = add<type>(value, #name, comment)
 
-inline void forceVisibility(fw::SettingRefVariant& setting)
+inline void forceVisibility(fw::SettingRefVariant&)
 {
     ++re::forceVisibility;
 }
@@ -199,6 +199,8 @@ protected:
     virtual std::unique_ptr<fw::Settings> createChild(const std::string& name) override;
 
 public:
+    std::recursive_mutex ProfilesMutex {};
+
     S(
         bool,
         ForceConsole,
@@ -234,7 +236,7 @@ public:
     S(int32_t, ActiveProfile, 0, "The currently active profile index").validator(
         [&](auto& value)
         {
-            if (value < 0 || value >= _children.size())
+            if (value < 0 || static_cast<std::size_t>(value) >= _children.size())
             {
                 value = 0;
             }
@@ -242,6 +244,7 @@ public:
     );
 
     [[nodiscard]] SettingsProfile& profile() const;
+    [[nodiscard]] std::recursive_mutex& profilesMutex();
 
     explicit Settings(const std::filesystem::path& filePath);
 
@@ -263,7 +266,7 @@ inline std::unique_ptr<fw::Settings> Settings::createChild(const std::string& na
 
 inline SettingsProfile& Settings::profile() const
 {
-    const auto idx = ActiveProfile.get() % _children.size();
+    const auto idx = _children.empty() ? 0 : ActiveProfile.get() % _children.size();
     return *dynamic_cast<SettingsProfile*>(_children[idx].get());
 }
 
@@ -279,7 +282,16 @@ inline Settings::Settings(const std::filesystem::path& filePath) : fw::Settings(
     }
 
     this->load();
+    if (_children.empty())
+    {
+        addChild<SettingsProfile>(this, "Default");
+    }
     this->save(true);
+}
+
+inline std::recursive_mutex& Settings::profilesMutex()
+{
+    return ProfilesMutex;
 }
 
 inline bool Settings::profileExists(const std::string& name) const
@@ -296,6 +308,7 @@ inline bool Settings::profileExists(const std::string& name) const
 
 inline void Settings::addProfile(const std::string& name)
 {
+    std::lock_guard lock(ProfilesMutex);
     if (name.empty() || profileExists(name))
         return;
 
@@ -305,7 +318,8 @@ inline void Settings::addProfile(const std::string& name)
 
 inline void Settings::removeProfile(const std::string& name)
 {
-    if (name.empty())
+    std::lock_guard lock(ProfilesMutex);
+    if (name.empty() || _children.size() <= 1)
         return;
 
     for (auto& child : _children)
@@ -321,6 +335,7 @@ inline void Settings::removeProfile(const std::string& name)
 
 inline void Settings::renameProfile(const std::string& oldName, const std::string& newName)
 {
+    std::lock_guard lock(ProfilesMutex);
     if (oldName.empty() || newName.empty())
         return;
 
@@ -332,6 +347,7 @@ inline void Settings::renameProfile(const std::string& oldName, const std::strin
         if (child->name() == oldName)
         {
             child->setName(newName);
+            break;
         }
     }
 }

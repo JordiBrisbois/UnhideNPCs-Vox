@@ -19,9 +19,9 @@ namespace memory::hooks
 
         ~WndProc();
 
-        virtual bool enable();
+        bool enable() override;
 
-        virtual bool disable(bool uninitialize);
+        bool disable(bool uninitialize) override;
 
         void addCallback(const std::function<uintptr_t(HWND, UINT, WPARAM, LPARAM)>& callback);
 

@@ -91,7 +91,7 @@ bool memory::Module::tryGetByName(const std::string& name, Module& result)
         return false;
     }
 
-    LOG_DBG("Found module at {:08X}", result._start.raw());
+    LOG_DBG("Found module");
     return true;
 }
 
@@ -112,7 +112,7 @@ bool memory::Module::tryGetByAddr(const memory::Handle& addr, Module& result)
         return false;
     }
 
-    LOG_DBG("Attempting to find module that holds address {:08X}", addr.raw());
+    LOG_DBG("Finding module for address");
     DWORD needed = 0;
 
     // Get the required size

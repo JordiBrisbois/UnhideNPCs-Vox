@@ -8,7 +8,6 @@
 #include "unpc.hpp"
 #include "backends/imgui_impl_dx11.h"
 #include "backends/imgui_impl_win32.h"
-#include "dumping.hpp"
 #include "MumbleLink.hpp"
 
 #include <shellapi.h>
@@ -373,6 +372,7 @@ void ui::renderOptions()
         return;
     }
 
+    std::unique_lock profilesLock(unpc::settings->profilesMutex());
     auto& settings = *unpc::settings;
     auto& profile  = settings.profile();
 
@@ -567,7 +567,7 @@ void ui::renderOptions()
         "Player-Owned",
         "Characters that are owned by the selected type of players will be hidden",
         std::vector<CheckboxGroupEntry> {
-            { "All", profile.HidePlayerOwned.description().c_str(), &hidePlayerOwned, &hideAllPlayerOwnedChanged },
+            { "Others", profile.HidePlayerOwned.description().c_str(), &hidePlayerOwned, &hideAllPlayerOwnedChanged },
             {
                 "Blocked",
                 profile.HideBlockedPlayersOwned.description().c_str(),
@@ -792,6 +792,7 @@ footer:
         "Useful for \"resetting\" things after modifying any settings."
     );
 
+    profilesLock.unlock();
     if (ImGui::TreeNodeEx("Hotkeys", ImGuiTreeNodeFlags_NoTreePushOnOpen))
     {
         unpc::hotkeyManager.renderHotkeys();

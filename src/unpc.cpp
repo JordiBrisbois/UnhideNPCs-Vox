@@ -19,7 +19,7 @@ std::optional<logging::Logger> unpc::logger;
 std::optional<Settings>        unpc::settings;
 std::optional<Detour>          unpc::npcHook {};
 
-HotkeyManager unpc::hotkeyManager("ArenaNet_Gr_Window_Class", std::filesystem::current_path() / "addons" / "UnhideNPCs" / "hotkeys.json");
+HotkeyManager unpc::hotkeyManager(std::filesystem::current_path() / "addons" / "UnhideNPCs" / "hotkeys.json");
 HANDLE        unpc::hMutex {};
 HMODULE       unpc::hModule {};
 
@@ -30,10 +30,10 @@ HMODULE     unpc::hProxyModule {};
 MumbleLink* unpc::mumbleLink {};
 int32_t*    unpc::loadingScreenActive {};
 
-uint32_t unpc::numPlayersVisible {};
-uint32_t unpc::numPlayerOwnedVisible {};
-uint32_t unpc::numNpcsVisible {};
-uint32_t unpc::numPlayersInArea {};
+std::atomic_uint32_t unpc::numPlayersVisible {};
+std::atomic_uint32_t unpc::numPlayerOwnedVisible {};
+std::atomic_uint32_t unpc::numNpcsVisible {};
+std::atomic_uint32_t unpc::numPlayersInArea {};
 
 #include "re.hpp"
 
@@ -43,6 +43,8 @@ void hotkeyCallback(const std::string& id)
     {
         return;
     }
+
+    std::lock_guard profilesLock(unpc::settings->profilesMutex());
 
     auto lambda = [id](fw::Settings& settings)
     {
@@ -233,53 +235,50 @@ bool initialize()
     Handle pointer {};
     if (!game.findPattern(re::pattern1, pointer))
     {
-        LOG_ERR("Unable to find pattern 1");
+        LOG_ERR("Compatibility check 1 failed");
         removeInitFile();
         return false;
     }
     re::vtableIndex = pointer.add(2).deref<uint32_t>() / 8;
-    LOG_DBG("VTable Index: {}", re::vtableIndex);
-    LOG_INFO("Pattern 1 OK");
+    LOG_INFO("Compatibility check 1 OK");
 
     if (!game.findPattern(re::pattern2, pointer))
     {
-        LOG_ERR("Unable to find pattern 2");
+        LOG_ERR("Compatibility check 2 failed");
         removeInitFile();
         return false;
     }
     pointer = pointer.add(10).resolve_relative_call();
-    LOG_DBG("Resolved call to {}+{:X}", game.name(), pointer.sub(game.start()).raw());
     npcHook.emplace("Hook", pointer.to_ptr<void*>(), reinterpret_cast<void*>(re::hook));
-    LOG_INFO("Pattern 2 OK");
+    LOG_INFO("Compatibility check 2 OK");
 
     if (!game.findPattern(re::pattern3, pointer))
     {
-        LOG_ERR("Unable to find pattern 3");
+        LOG_ERR("Compatibility check 3 failed");
         removeInitFile();
         return false;
     }
     pointer             = pointer.add(5);
     loadingScreenActive = pointer.add(6).add(pointer.add(2).deref<int32_t>()).to_ptr<int32_t*>();
-    LOG_DBG("Loading screen active: {:08X}", reinterpret_cast<uintptr_t>(loadingScreenActive));
-    LOG_INFO("Pattern 3 OK");
+    LOG_INFO("Compatibility check 3 OK");
 
     if (!game.findPattern(re::pattern4, pointer))
     {
-        LOG_ERR("Unable to find pattern 4");
+        LOG_ERR("Compatibility check 4 failed");
         removeInitFile();
         return false;
     }
     re::gw2::getContextCollection = reinterpret_cast<re::gw2::GetContextCollectionFn>(pointer.raw());
-    LOG_INFO("Pattern 4 OK");
+    LOG_INFO("Compatibility check 4 OK");
 
     if (!game.findPattern(re::pattern5, pointer))
     {
-        LOG_ERR("Unable to find pattern 5");
+        LOG_ERR("Compatibility check 5 failed");
         removeInitFile();
         return false;
     }
     re::gw2::getAvContext = reinterpret_cast<re::gw2::GetAvContextFn>(pointer.add(8).resolve_relative_call().raw());
-    LOG_INFO("Pattern 5 OK");
+    LOG_INFO("Compatibility check 5 OK");
 
     if (!npcHook->enable())
     {
@@ -307,6 +306,7 @@ void unpc::onHookTick()
     }
 
     hotkeyManager.update();
+    std::lock_guard profilesLock(settings->profilesMutex());
     settings->save();
 
     if (TRIGGER_ONCE)
@@ -410,7 +410,7 @@ bool unpc::shouldHide(
             return true;
         }
 
-        if (profile.HideStrangers.get() && !isFriend && !isPartyMember && !isSquadMember)
+        if (profile.HideStrangers.get() && !isFriend && !isActiveGuildMember && !isGuildMember && !isPartyMember && !isSquadMember)
         {
             return true;
         }
@@ -462,7 +462,7 @@ bool unpc::shouldHide(
             return true;
         }
 
-        if (profile.HideStrangersOwned.get() && !isOwnerLocalPlayer && !isFriend && !isPartyMember && !isSquadMember)
+        if (profile.HideStrangersOwned.get() && !isOwnerLocalPlayer && !isFriend && !isActiveGuildMember && !isGuildMember && !isPartyMember && !isSquadMember)
         {
             return true;
         }
@@ -549,7 +549,7 @@ bool unpc::shouldShow(
             return false;
         }
 
-        if (profile.HideStrangers.get() && !isFriend && !isPartyMember && !isSquadMember)
+        if (profile.HideStrangers.get() && !isFriend && !isActiveGuildMember && !isGuildMember && !isPartyMember && !isSquadMember)
         {
             return false;
         }
@@ -606,7 +606,7 @@ bool unpc::shouldShow(
             return false;
         }
 
-        if (profile.HideStrangersOwned.get() && !isOwnerLocalPlayer && !isFriend && !isPartyMember && !isSquadMember)
+        if (profile.HideStrangersOwned.get() && !isOwnerLocalPlayer && !isFriend && !isActiveGuildMember && !isGuildMember && !isPartyMember && !isSquadMember)
         {
             return false;
         }
@@ -728,6 +728,8 @@ void unpc::stop()
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
+
+        re::restoreGameState();
     }
 
     if (mode == EMode::Nexus)

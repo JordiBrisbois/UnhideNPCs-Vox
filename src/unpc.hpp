@@ -44,10 +44,10 @@ namespace unpc
     extern MumbleLink* mumbleLink;
     extern int32_t*    loadingScreenActive;
 
-    extern uint32_t numPlayersVisible;
-    extern uint32_t numPlayerOwnedVisible;
-    extern uint32_t numNpcsVisible;
-    extern uint32_t numPlayersInArea;
+    extern std::atomic_uint32_t numPlayersVisible;
+    extern std::atomic_uint32_t numPlayerOwnedVisible;
+    extern std::atomic_uint32_t numNpcsVisible;
+    extern std::atomic_uint32_t numPlayersInArea;
 
     void onHookTick();
 

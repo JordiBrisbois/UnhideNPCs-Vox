@@ -34,7 +34,7 @@ memory::Protection::Protection(const memory::Handle& base, const size_t size, co
         MEMORY_BASIC_INFORMATION info {};
         if (!VirtualQuery(current.to_ptr<void*>(), &info, sizeof(info)))
         {
-            LOG_DBG("VirtualQuery failed: {:08X} [{}]", current.raw(), GetLastError());
+            LOG_DBG("VirtualQuery failed: {}", GetLastError());
             break;
         }
 
@@ -43,7 +43,7 @@ memory::Protection::Protection(const memory::Handle& base, const size_t size, co
 
         if (info.State != MEM_COMMIT)
         {
-            LOG_DBG("Memory not committed: {:08X}", current.raw());
+            LOG_DBG("Memory not committed");
             current = regionEnd;
             break;
         }
@@ -56,7 +56,7 @@ memory::Protection::Protection(const memory::Handle& base, const size_t size, co
         DWORD oldProtect;
         if (!VirtualProtect(protectionStart.to_ptr<void*>(), protectionSize, protection, &oldProtect))
         {
-            LOG_DBG("VirtualProtect failed: {:08X} [{}]", protectionStart.raw(), GetLastError());
+            LOG_DBG("VirtualProtect failed: {}", GetLastError());
             current = regionEnd;
             break;
         }

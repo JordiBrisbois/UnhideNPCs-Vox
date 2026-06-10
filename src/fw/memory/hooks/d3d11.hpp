@@ -49,9 +49,9 @@ namespace memory::hooks
     public:
         ~D3D11();
 
-        virtual bool enable();
+        bool enable() override;
 
-        virtual bool disable(bool uninitialize);
+        bool disable(bool uninitialize) override;
 
         [[nodiscard]] ID3D11Device* device() const;
 

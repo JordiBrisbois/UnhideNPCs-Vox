@@ -6,13 +6,7 @@
 
 bool memory::Scanner::findPattern(const std::string& pattern, const Range& range, Handle& result)
 {
-    LOG_DBG(
-        "Looking for \"{}\" in range {:X}-{:X} [{:04X}]",
-        pattern,
-        range.start().raw(),
-        range.end().raw(),
-        range.size()
-    );
+    LOG_DBG("Scanning module memory");
     const auto  parsed = memory::Pattern(pattern);
     const auto& data   = parsed.data();
     const auto& mask   = parsed.mask();
@@ -49,7 +43,7 @@ bool memory::Scanner::findPattern(const std::string& pattern, const Range& range
         if (match)
         {
             result = Handle(reinterpret_cast<uintptr_t>(start) + i);
-            LOG_DBG("Found pattern at {:08X}", result.raw());
+            LOG_DBG("Pattern found");
             return true;
         }
     }
@@ -60,7 +54,7 @@ bool memory::Scanner::findPattern(const std::string& pattern, const Range& range
 
 bool memory::Scanner::findString(const std::string& string, const Range& range, Handle& result)
 {
-    LOG_DBG("Looking for {}", string);
+    LOG_DBG("Scanning for string");
     if (string.empty())
     {
         return false;
@@ -92,7 +86,7 @@ bool memory::Scanner::findString(const std::string& string, const Range& range, 
             if (match)
             {
                 result = Handle(reinterpret_cast<uintptr_t>(start) + i);
-                LOG_DBG("Found string at {:08X}", result.raw());
+                LOG_DBG("String found");
                 return true;
             }
         }
@@ -104,7 +98,7 @@ bool memory::Scanner::findString(const std::string& string, const Range& range, 
 
 bool memory::Scanner::findWstring(const std::wstring& string, const Range& range, Handle& result)
 {
-    LOG_DBG("Looking for {}", util::wstringToString(string));
+    LOG_DBG("Scanning for wide string");
     if (string.empty())
     {
         return false;
@@ -136,7 +130,7 @@ bool memory::Scanner::findWstring(const std::wstring& string, const Range& range
             if (match)
             {
                 result = Handle(start + i);
-                LOG_DBG("Found string at {:08X}", result.raw());
+                LOG_DBG("Wide string found");
                 return true;
             }
         }
@@ -148,7 +142,7 @@ bool memory::Scanner::findWstring(const std::wstring& string, const Range& range
 
 bool memory::Scanner::findStringReference(const std::string& string, Handle& result)
 {
-    LOG_DBG("Looking for {}", string);
+    LOG_DBG("Scanning for string reference");
 
     if (string.empty())
     {
@@ -160,7 +154,7 @@ bool memory::Scanner::findStringReference(const std::string& string, Handle& res
     MODULEINFO mi {};
     if (!GetModuleInformation(GetCurrentProcess(), hModule, &mi, sizeof(mi)))
     {
-        LOG_DBG("Could not get module information: {:08X}", GetLastError());
+        LOG_DBG("Could not get module information: {}", GetLastError());
         return false;
     }
 
@@ -197,7 +191,7 @@ bool memory::Scanner::findStringReference(const std::string& string, Handle& res
             if (const int32_t disp = *reinterpret_cast<const int32_t*>(insn + 3); insn + 7 + disp == strAddr)
             {
                 result = Handle(const_cast<uint8_t*>(insn));
-                LOG_DBG("Found reference at {:08X}", result.raw());
+                LOG_DBG("String reference found");
                 return true;
             }
         }
@@ -210,7 +204,7 @@ bool memory::Scanner::findStringReference(const std::string& string, Handle& res
 
 bool memory::Scanner::findWstringReference(const std::wstring& string, Handle& result)
 {
-    LOG_DBG("Looking for {}", util::wstringToString(string));
+    LOG_DBG("Scanning for wide string reference");
 
     if (string.empty())
     {
@@ -222,7 +216,7 @@ bool memory::Scanner::findWstringReference(const std::wstring& string, Handle& r
     MODULEINFO mi {};
     if (!GetModuleInformation(GetCurrentProcess(), hModule, &mi, sizeof(mi)))
     {
-        LOG_DBG("Could not get module information: {:08X}", GetLastError());
+        LOG_DBG("Could not get module information: {}", GetLastError());
         return false;
     }
 
@@ -263,7 +257,7 @@ bool memory::Scanner::findWstringReference(const std::wstring& string, Handle& r
             if (const int32_t disp = *reinterpret_cast<const int32_t*>(insn + 3); insn + 7 + disp == strAddr)
             {
                 result = Handle(const_cast<uint8_t*>(insn));
-                LOG_DBG("Found reference at {:08X}", result.raw());
+                LOG_DBG("Wide string reference found");
                 return true;
             }
         }

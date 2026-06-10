@@ -22,17 +22,8 @@ struct Hotkey
 class HotkeyManager
 {
 private:
-    struct
-    {
-        bool down[256]{};
-        bool pressed[256]{};
-    } _keyStates {};
-
     std::vector<std::pair<std::string, Hotkey>> _hotkeys {};
     std::vector<std::function<void(const std::string&)>> _callbacks {};
-
-    std::string _requiredWndClassName {};
-    bool _wndClassActive = true;
 
     std::string _hotkeyCapturing {};
     bool _captureJustStarted {};
@@ -40,16 +31,13 @@ private:
     std::filesystem::path _filePath;
     bool _needSave = false;
 
-    std::mutex _mutex {};
-
-    bool isHotkeyPressed(Hotkey& hotkey) const;
+    mutable std::recursive_mutex _mutex {};
 
 public:
-    explicit HotkeyManager(const std::string& requiredWndClassName = "", std::filesystem::path filePath = "");
+    explicit HotkeyManager(std::filesystem::path filePath = "");
 
     uintptr_t onWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-    void setRequiredWndClassName(const std::string& className);
     void registerHotkey(const std::string& id, const std::string& label);
     void unregisterHotkey(const std::string& id);
     void triggerCallbacks(const std::string& id) const;

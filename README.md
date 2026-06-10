@@ -8,8 +8,9 @@ This is a maintained continuation of
 **server-imp**. This continuation is maintained by **JordiBrisbois** under the
 **Vox** name.
 
-Release builds are reproducible: each public revision pins a reviewed commit
-of the private reverse-engineering layer.
+Release builds are traceable: each public revision pins a reviewed commit of
+the private client-integration layer, and the release workflow scans the exact
+artifact before creating a draft release.
 
 Using this, you could even put `Character Model Limit` to `Lowest` and still see all enemies/bosses/NPCs!
 
@@ -25,7 +26,7 @@ Using this, you could even put `Character Model Limit` to `Lowest` and still see
   official fork or an official release from the original author.
 
 Changes that are generally useful and do not depend on the private
-reverse-engineering layer may be proposed upstream to the original project.
+client-integration layer may be proposed upstream to the original project.
 
 ## Notes
 UnhideNPCs does nothing while in PvP or WvW.
@@ -43,7 +44,7 @@ This add-on includes an in-game configuration interface.
 <img src="https://github.com/user-attachments/assets/e8013d39-b235-4b42-b6af-809ffa2ddedb" width="33%">
 
 ## Installation
-There are four different ways to use UnhideNPCs; only follow one of them.
+There are three supported ways to use UnhideNPCs; only follow one of them.
 
 ### 1) Nexus (recommended)
 1. It's available in-game in the Nexus Library
@@ -59,11 +60,6 @@ There are four different ways to use UnhideNPCs; only follow one of them.
     - Note: `midimap.dll` does not appear to work on Linux/Proton in my tests
 3. Place it in your game folder.
 4. The game will load it automatically on the next launch.
-
-### 4) Manual injection (for developers/testing mainly)
-1. Inject `UnhideNPCs.dll` using your injector of choice, a simple one is included in the project for convenience.
-2. When injected:
-    - Press `END` to unload the plugin so it can be reloaded without restarting the game.
 
 ## Configuration
 

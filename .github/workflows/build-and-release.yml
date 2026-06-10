@@ -2,11 +2,6 @@ name: Build and Release
 
 on:
   workflow_dispatch:
-    inputs:
-      re_ref:
-        description: Reviewed UnhideNPCs-RE-Vox commit
-        required: false
-        default: 023a394d4089d25fbcc814d91d3bd808ae67f830
 
 permissions:
   contents: write
@@ -16,8 +11,10 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build-and-release:
+  build:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.VERSION }}
 
     steps:
       - uses: actions/checkout@v4
@@ -35,16 +32,25 @@ jobs:
         run: >
           cmake -S . -B build
           -G Ninja
-          -DCMAKE_BUILD_TYPE=RelWithDebInfo
+          -DCMAKE_BUILD_TYPE=Release
           -DCMAKE_CXX_STANDARD=17
           -DCMAKE_SYSTEM_NAME=Windows
           -DCMAKE_C_COMPILER=x86_64-w64-mingw32-gcc
           -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-g++
           -DCMAKE_RC_COMPILER=x86_64-w64-mingw32-windres
-          -DUNPC_RE_REF=${{ inputs.re_ref }}
 
       - name: Build
-        run: cmake --build build --config RelWithDebInfo
+        run: cmake --build build --config Release
+
+      - name: Verify release binary
+        run: |
+          test -f build/UnhideNPCs.dll
+          ! x86_64-w64-mingw32-objdump -p build/UnhideNPCs.dll | grep -E 'CreateRemoteThread|WriteProcessMemory|VirtualAllocEx'
+          sha256sum build/UnhideNPCs.dll
+
+      - name: Remove private fetch credentials
+        if: always()
+        run: git config --global --unset-all url."https://${{ secrets.GH_PAT }}:@github.com/".insteadOf || true
 
       - name: Read version.txt
         id: version
@@ -52,13 +58,67 @@ jobs:
           VERSION=$(cat build/version.txt)
           echo "VERSION=v${VERSION}" >> $GITHUB_OUTPUT
 
+      - name: Upload exact release candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: UnhideNPCs-release-candidate
+          path: build/UnhideNPCs.dll
+          if-no-files-found: error
+          retention-days: 14
+
+  defender-scan:
+    needs: build
+    runs-on: windows-latest
+
+    steps:
+      - name: Download exact release candidate
+        uses: actions/download-artifact@v4
+        with:
+          name: UnhideNPCs-release-candidate
+          path: release-candidate
+
+      - name: Scan exact release candidate with Microsoft Defender
+        shell: powershell
+        run: |
+          $status = Get-MpComputerStatus
+          if (-not $status.AntivirusEnabled) {
+            throw "Microsoft Defender Antivirus is not enabled on this runner."
+          }
+
+          $scanStarted = Get-Date
+          $dll = (Resolve-Path "release-candidate\UnhideNPCs.dll").Path
+          Get-FileHash $dll -Algorithm SHA256
+          Start-MpScan -ScanType CustomScan -ScanPath $dll
+
+          if (-not (Test-Path $dll)) {
+            throw "Microsoft Defender removed or quarantined the release candidate."
+          }
+
+          $detection = Get-MpThreatDetection |
+            Where-Object { $_.InitialDetectionTime -ge $scanStarted }
+          if ($detection) {
+            $detection | Format-List
+            throw "Microsoft Defender detected the release candidate."
+          }
+
+  create-draft-release:
+    needs: [build, defender-scan]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download scanned release candidate
+        uses: actions/download-artifact@v4
+        with:
+          name: UnhideNPCs-release-candidate
+          path: release-candidate
+
       - name: Create draft GitHub release
         run: |
-          gh release create "${{ steps.version.outputs.VERSION }}" \
-            ./build/UnhideNPCs.dll \
-            ./build/UnhideNPCs.dll.debug \
+          sha256sum release-candidate/UnhideNPCs.dll
+          gh release create "${{ needs.build.outputs.version }}" \
+            ./release-candidate/UnhideNPCs.dll \
             --draft \
             --generate-notes \
-            --title "${{ steps.version.outputs.VERSION }}"
+            --title "${{ needs.build.outputs.version }}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

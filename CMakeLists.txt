@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.31)
 set(PROJECT_NAME "UnhideNPCs")
 set(PROJECT_AUTHOR "Vox; original author: server-imp")
 set(PROJECT_URL "https://github.com/JordiBrisbois/UnhideNPCs-Vox")
-set(UNPC_RE_REF "023a394d4089d25fbcc814d91d3bd808ae67f830" CACHE STRING "Reviewed UnhideNPCs-RE-Vox revision")
+set(UNPC_RE_REF "83220c518d9e7e8429350060adc0900d6b68ba02" CACHE STRING "Reviewed UnhideNPCs-RE-Vox revision")
 project(${PROJECT_NAME})
 set(CMAKE_CXX_STANDARD 17)
 
@@ -118,6 +118,7 @@ FetchContent_MakeAvailable(json)
 file(GLOB_RECURSE PROJECT_SOURCES
         "src/**.cpp"
 )
+list(FILTER PROJECT_SOURCES EXCLUDE REGEX "[/\\\\]dllmain\\.cpp$")
 
 add_library(${PROJECT_NAME} SHARED src/dllmain.cpp ${PROJECT_SOURCES} ${CMAKE_CURRENT_BINARY_DIR}/version.rc)
 
