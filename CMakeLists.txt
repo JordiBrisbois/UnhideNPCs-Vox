@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.31)
 set(PROJECT_NAME "UnhideNPCs")
 set(PROJECT_AUTHOR "Vox; original author: server-imp")
 set(PROJECT_URL "https://github.com/JordiBrisbois/UnhideNPCs-Vox")
-set(UNPC_RE_REF "2be86c935b935f6804de0aeeb8fd4da0aa20ad08" CACHE STRING "Reviewed UnhideNPCs-RE-Vox revision")
+set(UNPC_RE_REF "023a394d4089d25fbcc814d91d3bd808ae67f830" CACHE STRING "Reviewed UnhideNPCs-RE-Vox revision")
 project(${PROJECT_NAME})
 set(CMAKE_CXX_STANDARD 17)
 

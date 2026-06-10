@@ -1,17 +1,31 @@
-# UnhideNPCs by Vox
+# UnhideNPCs Vox
 
 Ever been annoyed that enemies, bosses and NPCs disappear when many players are nearby?  
 UnhideNPCs keeps them visible.
 
-Maintained by **Vox**, based on the original
-[UnhideNPCs](https://github.com/server-imp/UnhideNPCs) project by **server-imp**.
-Current releases and issue tracking live in this
-[Vox repository](https://github.com/JordiBrisbois/UnhideNPCs-Vox).
+This is a maintained continuation of
+[UnhideNPCs](https://github.com/server-imp/UnhideNPCs), originally created by
+**server-imp**. This continuation is maintained by **JordiBrisbois** under the
+**Vox** name.
 
 Release builds are reproducible: each public revision pins a reviewed commit
 of the private reverse-engineering layer.
 
 Using this, you could even put `Character Model Limit` to `Lowest` and still see all enemies/bosses/NPCs!
+
+## Project Origin and Credits
+
+- Original project and implementation:
+  [server-imp/UnhideNPCs](https://github.com/server-imp/UnhideNPCs), by
+  **server-imp** and its contributors.
+- Maintained continuation, releases and issue tracking:
+  [JordiBrisbois/UnhideNPCs-Vox](https://github.com/JordiBrisbois/UnhideNPCs-Vox),
+  by **JordiBrisbois (Vox)**.
+- This repository is currently an independent GitHub repository, not an
+  official fork or an official release from the original author.
+
+Changes that are generally useful and do not depend on the private
+reverse-engineering layer may be proposed upstream to the original project.
 
 ## Notes
 UnhideNPCs does nothing while in PvP or WvW.
