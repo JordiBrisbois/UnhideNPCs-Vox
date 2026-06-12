@@ -15,11 +15,10 @@ namespace nexus
     extern AddonDefinition AddonDef;
     extern AddonAPI*       APIDefs;
 
-    bool isNexus();
-
     MumbleLink* getMumbleLink();
 
     void logCallback(const logging::LogEntry& entry);
+    void alert(const std::string& message);
 
     void options();
 

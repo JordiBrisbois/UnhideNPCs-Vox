@@ -1,10 +1,16 @@
 #ifndef FW_SETTINGS_HPP
 #define FW_SETTINGS_HPP
 
+#include <atomic>
+#include <filesystem>
+#include <functional>
+#include <mutex>
+#include <string>
 #include <utility>
 #include <variant>
 #include <memory>
 #include <type_traits>
+#include <vector>
 #include <nlohmann/json.hpp>
 
 namespace fw
@@ -150,7 +156,7 @@ namespace fw
             _onChanged(refVariant);
         }
 
-        return value;
+        return get();
     }
 
     template <typename T>

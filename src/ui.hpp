@@ -1,16 +1,11 @@
 #ifndef UNHIDENPCS_UI_HPP
 #define UNHIDENPCS_UI_HPP
 #pragma once
-#include "fw/memory/hooks/d3d11.hpp"
-#include "fw/memory/hooks/wndproc.hpp"
 
 namespace ui
 {
     extern float labelOffset;
     extern float fieldWidth;
-
-    extern std::optional<std::unique_ptr<memory::hooks::D3D11>> d3dHook;
-    extern std::optional<memory::hooks::WndProc>                wndProcHook;
 
     void tooltip(const char* text);
 
@@ -35,20 +30,6 @@ namespace ui
         const char* tip
     );
 
-    bool sliderFloat(
-        const char* label,
-        const char* id,
-        float&      value,
-        float       min,
-        float       max,
-        const char* fmt,
-        const char* tip
-    );
-
-    bool button(const char* label);
-
-    bool textbox(const char* tag, char* buffer, const size_t bufferSize);
-
     bool textboxbutton(const char* tag, const char* hint, char* buffer, size_t bufferSize, const char* buttonText);
 
     void separatorText(const char* text);
@@ -57,23 +38,9 @@ namespace ui
 
     void renderOptions();
 
-    void renderWindow();
-
-    bool wasKeyPressed(int vKey);
-
-    bool wasComboPressed(const std::initializer_list<int>& combo);
-
     uintptr_t onWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
     uint32_t onWndProcNexus(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
-    void onD3DPresent();
-
-    void onD3DResizeBuffers(const memory::hooks::D3D11* hk, bool pre);
-
-    bool onD3DStarted(const memory::hooks::D3D11* hk);
-
-    void onD3DShutdown(const memory::hooks::D3D11* hk);
 }
 
 #endif //UNHIDENPCS_UI_HPP

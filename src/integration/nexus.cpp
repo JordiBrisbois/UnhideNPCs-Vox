@@ -7,21 +7,7 @@ namespace nexus
 {
     AddonDefinition AddonDef {};
     AddonAPI*       APIDefs {};
-
-    bool isNexus()
-    {
-        if (APIDefs)
-        {
-            return true;
-        }
-
-        if (util::shmExists(fmt::format("DL_NEXUS_LINK_{}", GetCurrentProcessId())))
-        {
-            return true;
-        }
-
-        return false;
-    }
+    bool            loaded {};
 
     MumbleLink* getMumbleLink()
     {
@@ -58,6 +44,12 @@ namespace nexus
         APIDefs->Log(level, "UnhideNPCs", entry.message.c_str());
     }
 
+    void alert(const std::string& message)
+    {
+        if (APIDefs)
+            APIDefs->UI.SendAlert(message.c_str());
+    }
+
     void options()
     {
         if (unpc::exit)
@@ -72,21 +64,11 @@ namespace nexus
         {
             return;
         }
-        if (unpc::hProxyModule || unpc::injected)
-        {
-            return;
-        }
-
         ui::renderOptions();
     }
 
     void onLoad(AddonAPI* aApi)
     {
-        if (unpc::hProxyModule || unpc::injected)
-        {
-            return;
-        }
-
         APIDefs = aApi;
 
         ImGui::SetCurrentContext(static_cast<ImGuiContext*>(aApi->ImguiContext));
@@ -94,25 +76,28 @@ namespace nexus
         const auto f = reinterpret_cast<void(*)(void*, void*)>(reinterpret_cast<std::uintptr_t>(aApi->ImguiFree));
         ImGui::SetAllocatorFunctions(a, f);
 
+        if (!util::checkMutex("UnhideNPCsMutex", unpc::hMutex))
+        {
+            APIDefs->Log(ELogLevel_WARNING, "UnhideNPCs", "Another UnhideNPCs instance is already loaded.");
+            return;
+        }
+
         APIDefs->Renderer.Register(ERenderType_OptionsRender, options);
         APIDefs->WndProc.Register(ui::onWndProcNexus);
-
+        loaded = true;
         unpc::start();
     }
 
     void onUnload()
     {
-        if (unpc::hProxyModule || unpc::injected)
+        if (loaded)
         {
-            return;
+            APIDefs->Renderer.Deregister(options);
+            APIDefs->WndProc.Deregister(ui::onWndProcNexus);
+            unpc::stop();
+            loaded = false;
         }
-
-        APIDefs->Renderer.Deregister(options);
-        APIDefs->WndProc.Deregister(ui::onWndProcNexus);
-
-        unpc::stop();
-
-        FreeLibrary(unpc::hModule);
+        APIDefs = nullptr;
     }
 }
 

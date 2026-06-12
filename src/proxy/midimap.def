@@ -1,4 +1,0 @@
-EXPORTS
-    DriverProc="C:\Windows\System32\midimap.DriverProc"
-    modMessage="C:\Windows\System32\midimap.modMessage"
-    modmCallback="C:\Windows\System32\midimap.modmCallback"

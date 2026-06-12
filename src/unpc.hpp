@@ -11,22 +11,8 @@
 
 namespace unpc
 {
-    enum class EMode : int32_t
-    {
-        Unknown  = 0,
-        Proxy    = 1,
-        Injected = 2,
-        Nexus    = 3,
-        ArcDps   = 4
-    };
-
     constexpr auto SIGNATURE = 1817724315;
 
-    inline auto mode = EMode::Unknown;
-
-    extern std::atomic_bool nexusPresent;
-    extern std::atomic_bool arcDpsPresent;
-    extern std::atomic_bool injected;
     extern std::atomic_bool exit;
     extern std::atomic_bool stopping;
 
@@ -35,11 +21,7 @@ namespace unpc
     extern std::optional<memory::Detour>  npcHook;
     extern HotkeyManager                  hotkeyManager;
 
-    extern HANDLE      hMutex;
-    extern HMODULE     hModule;
-    extern HANDLE      hThread;
-    extern std::string proxyModuleName;
-    extern HMODULE     hProxyModule;
+    extern HANDLE hMutex;
 
     extern MumbleLink* mumbleLink;
     extern int32_t*    loadingScreenActive;
@@ -57,6 +39,7 @@ namespace unpc
         bool    isPlayerOwned,
         bool    isOwnerLocalPlayer,
         bool    isTarget,
+        bool    isTargetOwned,
         bool    isAttackable,
         uint8_t rank,
         float   distance,
@@ -75,6 +58,24 @@ namespace unpc
         bool    isPlayerOwned,
         bool    isOwnerLocalPlayer,
         bool    isTarget,
+        bool    isTargetOwned,
+        bool    isAttackable,
+        uint8_t rank,
+        float   distance,
+        bool    isFriend,
+        bool    isBlocked,
+        bool    isActiveGuildMember,
+        bool    isGuildMember,
+        bool    isPartyMember,
+        bool    isSquadMember
+    );
+
+    [[nodiscard]] bool hasAlwaysShowPriority(
+        bool    isPlayer,
+        bool    isPlayerOwned,
+        bool    isOwnerLocalPlayer,
+        bool    isTarget,
+        bool    isTargetOwned,
         bool    isAttackable,
         uint8_t rank,
         float   distance,
@@ -89,8 +90,6 @@ namespace unpc
     void start();
 
     void stop();
-
-    void entrypoint();
 }
 
 #endif //UNHIDENPCS_UNPC_HPP

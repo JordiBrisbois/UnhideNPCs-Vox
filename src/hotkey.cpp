@@ -1,7 +1,6 @@
 #include "hotkey.hpp"
 
 #include "imgui.h"
-#include "ui.hpp"
 #include "unpc.hpp"
 #include "fw/logger.hpp"
 
@@ -121,7 +120,14 @@ uintptr_t HotkeyManager::onWndProc(HWND hWnd, const UINT msg, const WPARAM wPara
         hotkey->ctrl     = ctrl;
         hotkey->shift    = shift;
         hotkey->alt      = alt;
-        hotkey->active   = true; // prevent it from activating immediately
+        for (auto& [otherId, other] : _hotkeys)
+        {
+            if (otherId != _hotkeyCapturing && other.matches(vkCode, ctrl, shift, alt))
+            {
+                other.vkCode = 0;
+                LOG_INFO("Cleared duplicate hotkey \"{}\"", otherId);
+            }
+        }
 
         LOG_INFO("Updated hotkey \"{}\" to {}", _hotkeyCapturing, hotkey->toString());
 
@@ -133,30 +139,8 @@ uintptr_t HotkeyManager::onWndProc(HWND hWnd, const UINT msg, const WPARAM wPara
 
     for (auto& [id, hotkey] : _hotkeys)
     {
-        if (hotkey.vkCode == 0)
-        {
+        if (!hotkey.matches(vkCode, ctrl, shift, alt))
             continue;
-        }
-
-        if (hotkey.vkCode != vkCode)
-        {
-            continue;
-        }
-
-        if (hotkey.ctrl && !ctrl)
-        {
-            continue;
-        }
-
-        if (hotkey.shift && !shift)
-        {
-            continue;
-        }
-
-        if (hotkey.alt && !alt)
-        {
-            continue;
-        }
 
         triggerCallbacks(id);
     }
@@ -164,7 +148,7 @@ uintptr_t HotkeyManager::onWndProc(HWND hWnd, const UINT msg, const WPARAM wPara
     return msg;
 }
 
-void HotkeyManager::registerHotkey(const std::string& id, const std::string& label)
+void HotkeyManager::registerHotkey(const std::string& id, const std::string& label, const std::string& description)
 {
     std::lock_guard lock(_mutex);
     if (getHotkey(id))
@@ -173,7 +157,7 @@ void HotkeyManager::registerHotkey(const std::string& id, const std::string& lab
         return;
     }
 
-    _hotkeys.emplace_back(id, Hotkey { .label = label });
+    _hotkeys.emplace_back(id, Hotkey { .label = label, .description = description });
 }
 
 void HotkeyManager::unregisterHotkey(const std::string& id)
@@ -207,65 +191,20 @@ void HotkeyManager::registerCallback(const std::function<void(const std::string&
     _callbacks.push_back(callback);
 }
 
+void HotkeyManager::reset()
+{
+    std::lock_guard lock(_mutex);
+    _hotkeys.clear();
+    _callbacks.clear();
+    _hotkeyCapturing.clear();
+}
+
 void HotkeyManager::update()
 {
     std::lock_guard lock(_mutex);
     if (_needSave)
     {
         save();
-    }
-}
-
-void HotkeyManager::renderHotkey(const std::string& id, Hotkey& hotkey)
-{
-    std::lock_guard lock(_mutex);
-
-    ImGui::TableSetColumnIndex(0);
-    ImGui::AlignTextToFramePadding();
-    const bool capturing = _hotkeyCapturing == id;
-    ImGui::TextUnformatted(capturing ? "Esc to cancel" : id.c_str());
-    ui::tooltip(hotkey.label.c_str());
-    ImGui::TableSetColumnIndex(1);
-
-    if (capturing)
-    {
-        ImGui::PushID((id + "_capturing").c_str());
-        if (ImGui::Button("Press Keys...", ImVec2(-FLT_MIN, 0)))
-        {
-            _hotkeyCapturing    = "";
-            _captureJustStarted = false;
-            hotkey.vkCode       = 0;
-            LOG_INFO("Updated hotkey \"{}\" to {}", id, hotkey.toString());
-            _needSave = true;
-        }
-    }
-    else
-    {
-        ImGui::PushID(id.c_str());
-        if (ImGui::Button(hotkey.toString().c_str(), ImVec2(-FLT_MIN, 0)))
-        {
-            _hotkeyCapturing    = id;
-            _captureJustStarted = true;
-        }
-    }
-
-    ImGui::PopID();
-}
-
-void HotkeyManager::renderHotkeys()
-{
-    std::lock_guard lock(_mutex);
-    if (ImGui::BeginTable("hotkey_table", 2, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_ScrollY, ImVec2(0, 300)))
-    {
-        ImGui::TableSetupColumn("Text", ImGuiTableColumnFlags_WidthStretch);
-        ImGui::TableSetupColumn("Button", ImGuiTableColumnFlags_WidthFixed, ui::fieldWidth);
-        ImGui::TableNextRow();
-        for (auto& [id, hotkey] : _hotkeys)
-        {
-            ImGui::TableNextRow();
-            renderHotkey(id, hotkey);
-        }
-        ImGui::EndTable();
     }
 }
 
@@ -308,63 +247,13 @@ Hotkey* HotkeyManager::getHotkey(const std::string& id)
     return nullptr;
 }
 
-void HotkeyManager::save()
+std::string HotkeyManager::label(const std::string& id) const
 {
     std::lock_guard lock(_mutex);
-    const std::filesystem::path dir = _filePath.parent_path();
-    if (!exists(dir))
+    for (const auto& [key, hotkey] : _hotkeys)
     {
-        create_directories(dir);
+        if (key == id)
+            return hotkey.label;
     }
-
-    std::ofstream file(_filePath);
-    if (!file.is_open())
-    {
-        LOG_ERR("Failed to open {} for writing", _filePath.string());
-        return;
-    }
-
-    const nlohmann::json json = _hotkeys;
-
-    file << std::setw(4) << json << '\n';
-
-    _needSave = false;
-}
-
-void HotkeyManager::load()
-{
-    std::lock_guard lock(_mutex);
-    if (!exists(_filePath))
-    {
-        return;
-    }
-
-    std::ifstream file(_filePath);
-    if (!file.is_open())
-    {
-        LOG_ERR("Failed to open {} for reading", _filePath.string());
-        return;
-    }
-
-    nlohmann::json json;
-    file >> json;
-
-    std::vector<std::pair<std::string, Hotkey>> hotkeys = json;
-    for (auto& [id, hotkey] : hotkeys)
-    {
-        auto hk = getHotkey(id);
-        if (!hk)
-        {
-            LOG_WARN("Unknown hotkey \"{}\"", id);
-            continue;
-        }
-
-        const Hotkey temp = hotkey;
-
-        hk->vkCode = temp.vkCode;
-        hk->ctrl   = temp.ctrl;
-        hk->shift  = temp.shift;
-        hk->alt    = temp.alt;
-        LOG_INFO("Loaded hotkey \"{}\": {}", id, hk->toString());
-    }
+    return id;
 }

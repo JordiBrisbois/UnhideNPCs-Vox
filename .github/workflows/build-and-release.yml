@@ -48,7 +48,9 @@ jobs:
       - name: Verify release binary
         run: |
           test -f build/UnhideNPCs.dll
+          x86_64-w64-mingw32-objdump -p build/UnhideNPCs.dll | grep -q 'GetAddonDef'
           ! x86_64-w64-mingw32-objdump -p build/UnhideNPCs.dll | grep -E 'CreateRemoteThread|WriteProcessMemory|VirtualAllocEx'
+          ! x86_64-w64-mingw32-objdump -p build/UnhideNPCs.dll | grep -Ei 'd3d11\.dll|dxgi\.dll|d3dcompiler|xinput'
           sha256sum build/UnhideNPCs.dll
 
       - name: Remove private fetch credentials

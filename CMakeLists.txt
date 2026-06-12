@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.31)
 set(PROJECT_NAME "UnhideNPCs")
 set(PROJECT_AUTHOR "Vox; original author: server-imp")
 set(PROJECT_URL "https://github.com/JordiBrisbois/UnhideNPCs-Vox")
-set(UNPC_RE_REF "ac48424aaea211a6fcca2cec08aff33d2617a35b" CACHE STRING "Reviewed UnhideNPCs-RE-Vox revision")
+set(UNPC_RE_REF "a275fbe199253f09c6c7f2c66ad14a4fcf40ee25" CACHE STRING "Reviewed UnhideNPCs-RE-Vox revision")
 project(${PROJECT_NAME})
 set(CMAKE_CXX_STANDARD 17)
 
@@ -88,15 +88,11 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(imgui)
 add_library(imgui STATIC
         ${imgui_SOURCE_DIR}/imgui.cpp
-        ${imgui_SOURCE_DIR}/imgui_demo.cpp
         ${imgui_SOURCE_DIR}/imgui_draw.cpp
         ${imgui_SOURCE_DIR}/imgui_tables.cpp
         ${imgui_SOURCE_DIR}/imgui_widgets.cpp
-        ${imgui_SOURCE_DIR}/backends/imgui_impl_dx11.cpp
-        ${imgui_SOURCE_DIR}/backends/imgui_impl_win32.cpp
 )
 target_include_directories(imgui PUBLIC ${imgui_SOURCE_DIR})
-target_compile_definitions(imgui PRIVATE IMGUI_IMPL_WIN32_DISABLE_GAMEPAD)
 
 FetchContent_Declare(
         Nexus
@@ -118,9 +114,8 @@ FetchContent_MakeAvailable(json)
 file(GLOB_RECURSE PROJECT_SOURCES
         "src/**.cpp"
 )
-list(FILTER PROJECT_SOURCES EXCLUDE REGEX "[/\\\\]dllmain\\.cpp$")
 
-add_library(${PROJECT_NAME} SHARED src/dllmain.cpp ${PROJECT_SOURCES} ${CMAKE_CURRENT_BINARY_DIR}/version.rc)
+add_library(${PROJECT_NAME} SHARED ${PROJECT_SOURCES} ${CMAKE_CURRENT_BINARY_DIR}/version.rc)
 
 target_compile_options(${PROJECT_NAME} PRIVATE
         -Os
@@ -134,9 +129,6 @@ target_link_options(${PROJECT_NAME} PRIVATE
         -static-libgcc
         -static-libstdc++
         -Wl,--gc-sections
-        "${CMAKE_SOURCE_DIR}/src/proxy/d3d9.def"
-        "${CMAKE_SOURCE_DIR}/src/proxy/dxgi.def"
-        "${CMAKE_SOURCE_DIR}/src/proxy/midimap.def"
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "" SUFFIX ".dll")
@@ -168,13 +160,32 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
         minhook
         fmt
         imgui
-        d3d11
-        dxgi
-        d3dcompiler
-        xinput
-        gdi32
         user32
 )
+
+include(CTest)
+if (BUILD_TESTING)
+    add_executable(visibility_rules_tests
+            tests/visibility_rules_tests.cpp
+            src/visibility_rules.cpp
+            src/profile_settings.cpp
+            src/profile_presets.cpp
+    )
+    target_include_directories(visibility_rules_tests PRIVATE
+            "src"
+            "${fmt_SOURCE_DIR}/include"
+            "${json_SOURCE_DIR}/single_include"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../UnhideNPCs-RE"
+    )
+    add_test(NAME visibility_rules COMMAND visibility_rules_tests)
+
+    add_executable(hotkey_model_tests tests/hotkey_model_tests.cpp)
+    target_include_directories(hotkey_model_tests PRIVATE
+            "src"
+            "${json_SOURCE_DIR}/single_include"
+    )
+    add_test(NAME hotkey_model COMMAND hotkey_model_tests)
+endif ()
 
 #add_executable(Injector src/injector.cpp)
 

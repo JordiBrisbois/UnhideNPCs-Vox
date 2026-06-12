@@ -1,6 +1,8 @@
 #ifndef UNHIDENPCS_MUMBLELINK_HPP
 #define UNHIDENPCS_MUMBLELINK_HPP
 #pragma once
+
+#include "fw/util.hpp"
 #include "pch.hpp"
 #include "nlohmann/json.hpp"
 
@@ -137,47 +139,4 @@ struct MumbleLink
 };
 #pragma pack(pop)
 
-inline MumbleLink* getMumbleLink()
-{
-    std::string mappingName = util::getStartupArgValue("-mumble");
-    if (mappingName.empty())
-    {
-        mappingName = "MumbleLink";
-    }
-
-    auto hMap = OpenFileMappingA(FILE_MAP_ALL_ACCESS, FALSE, mappingName.c_str());
-    if (!hMap)
-    {
-        LOG_DBG("OpenFileMappingW failed: \"{}\", {}", mappingName, GetLastError());
-        hMap = CreateFileMappingA(
-            INVALID_HANDLE_VALUE,
-            nullptr,
-            PAGE_READWRITE,
-            0,
-            sizeof(MumbleLink),
-            mappingName.c_str()
-        );
-
-        if (!hMap)
-        {
-            LOG_DBG("CreateFileMappingW failed: {}", GetLastError());
-            return nullptr;
-        }
-
-        LOG_DBG("CreateFileMappingW succeeded");
-    }
-
-    const auto ptr = MapViewOfFile(hMap, FILE_MAP_ALL_ACCESS, 0, 0, sizeof(MumbleLink));
-    if (!ptr)
-    {
-        LOG_DBG("MapViewOfFile failed: {}", GetLastError());
-        CloseHandle(hMap);
-        return nullptr;
-    }
-
-    // The game won't initialize Mumble Link if we close this handle
-    // CloseHandle(hMap);
-
-    return static_cast<MumbleLink*>(ptr);
-}
 #endif //UNHIDENPCS_MUMBLELINK_HPP

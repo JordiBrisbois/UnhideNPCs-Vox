@@ -44,22 +44,12 @@ This add-on includes an in-game configuration interface.
 <img src="https://github.com/user-attachments/assets/e8013d39-b235-4b42-b6af-809ffa2ddedb" width="33%">
 
 ## Installation
-There are three supported ways to use UnhideNPCs; only follow one of them.
 
-### 1) Nexus (recommended)
-1. It's available in-game in the Nexus Library
+UnhideNPCs requires [Nexus](https://raidcore.gg/Nexus).
 
-### 2) ArcDPS
-1. Download `UnhideNPCs.dll` from [Releases](https://github.com/JordiBrisbois/UnhideNPCs-Vox/releases).
-2. Place it in your game folder (e.g. `C:\Program Files\Guild Wars 2`).
-3. ArcDPS will load the plugin automatically on the next launch.
+Install it directly from the in-game Nexus Library.
 
-### 3) DLL Proxy
-1. Download `UnhideNPCs.dll` from [Releases](https://github.com/JordiBrisbois/UnhideNPCs-Vox/releases).
-2. Rename it to one of the following: `dxgi.dll`/`midimap.dll`/`d3d9.dll`.
-    - Note: `midimap.dll` does not appear to work on Linux/Proton in my tests
-3. Place it in your game folder.
-4. The game will load it automatically on the next launch.
+ArcDPS and standalone DLL proxy loading are not supported.
 
 ## Configuration
 
